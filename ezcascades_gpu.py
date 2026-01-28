@@ -25,18 +25,30 @@ class MPI_to_serial():
         return 0
 
 
-# try running in parallel, otherwise single thread
+# Try running in parallel with MPI, otherwise fallback to serial
 try:
     from mpi4py import MPI
     comm = MPI.COMM_WORLD
     me = comm.Get_rank()
     nprocs = comm.Get_size()
     mode = 'MPI'
-except:
+
+except ImportError:
     me = 0
     nprocs = 1
-    comm = MPI_to_serial()
     mode = 'serial'
+
+
+# Checking if all the GPU are visible - remove if there are no GPUs
+
+# Print MPI rank info
+print(f"[Rank {me}/{nprocs}] Mode: {mode}")
+
+# Print visible GPU(s) for this rank
+cuda_visible = os.environ.get("CUDA_VISIBLE_DEVICES", "None")
+print(f"[Rank {me}/{nprocs}] CUDA_VISIBLE_DEVICES: {cuda_visible}")
+
+sys.stdout.flush()
 
 def mpiprint(*arg):
     if me == 0:
@@ -396,7 +408,21 @@ WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING''' % tem
     # read restart file and continue simulation from there, if available 
     if restartfile:
         announce("Restarting from last cascade file: %s" % restartfile)
-        lmp.command('read_data %s' % restartfile)
+        lmp.command('read_restart %s' % restartfile)
+        
+        # Set the time integration from the restart file to ensure continuity.
+        if athermal:
+            lmp.command('fix fnve all nve')
+        else:
+            # do not apply barostat if no stresses are set
+            if boxstress == {}: 
+                lmp.command('fix fnve all nve')
+
+            else:
+                nphstring = ''
+                for _sij in boxstress:
+                    nphstring += "%s %f %f %f " % (_sij, boxstress[_sij], boxstress[_sij], pdamp)
+                lmp.command('fix fbaro all nph %s nreset 10' % nphstring) 
 
         # import log file and fetch last dose
         logdata = np.loadtxt('%s/log/%s.log' % (simdir, job_name))
@@ -414,6 +440,7 @@ WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING''' % tem
 
         if initialtype == "data":
             lmp.command('read_data %s' % initial)
+
         elif initialtype == "dump":
             initialframe = get_dump_frame(initial)
 
@@ -468,7 +495,7 @@ WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING''' % tem
         iteration = 0
 
     # load potential
-    lmp.command('pair_style eam/alloy')
+    lmp.command('pair_style eam/%s' % potfile.split('.')[-1])
     lmp.command(('pair_coeff * * %s ' % potfile) + '%s '*nelements % tuple(potential.ele))
 
     # overwrite default masses
@@ -571,18 +598,20 @@ WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING''' % tem
     lmp.command('fix flangevin gdamped langevin %f %f %f %d' % (temp+1e-9, temp+1e-9, tdamp, rndnumber))
 
     # apply barostat if this is a thermal run with prescribed stress
-    if athermal:
-        lmp.command('fix fnve all nve')
-    else:
-        # do not apply barostat if no stresses are set
-        if boxstress == {}: 
-            pass 
- 
-        nphstring = ''
-        for _sij in boxstress:
-            nphstring += "%s %f %f %f " % (_sij, boxstress[_sij], boxstress[_sij], pdamp)
-        lmp.command('fix fbaro all nph %s nreset 10' % nphstring) 
- 
+    if not restartfile:
+        if athermal:
+            lmp.command('fix fnve all nve')
+        else:
+            # do not apply barostat if no stresses are set
+            if boxstress == {}: 
+                lmp.command('fix fnve all nve')
+
+            else:
+                nphstring = ''
+                for _sij in boxstress:
+                    nphstring += "%s %f %f %f " % (_sij, boxstress[_sij], boxstress[_sij], pdamp)
+                lmp.command('fix fbaro all nph %s nreset 10' % nphstring) 
+    
     # keep box centre of mass from drifting
     lmp.command("fix frecenter all recenter INIT INIT INIT")
           
@@ -815,7 +844,7 @@ WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING''' % tem
                         break
                 
                 if not trisuccess:
-                    annouce ("Error: could not place a random point inside triclinic cell after %d attempts." % nattempts)
+                    announce ("Error: could not place a random point inside triclinic cell after %d attempts." % nattempts)
                     return 1
 
                 _ncasc = len(cascade_pos)
@@ -1017,7 +1046,7 @@ WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING''' % tem
         # write restart file always - this is in data format for also reading velocities
         dfile = "%s/%s/%s.restart" % (scrdir, job_name, job_name)
         announce("Writing restart file: %s" % dfile)
-        lmp.command('write_data %s' % dfile) 
+        lmp.command('write_restart %s' % dfile) 
 
         # write dump file every 'export_nth' steps
         if ((iteration + cloop) % export_nth) == 0:
@@ -1037,6 +1066,7 @@ if __name__ == "__main__":
 
     if mode == 'MPI':
         MPI.Finalize()
+
 
 
 
