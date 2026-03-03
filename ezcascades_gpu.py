@@ -377,7 +377,9 @@ WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING''' % tem
 
 
     # Start LAMMPS instance
-    lmp = lammps("gpu-cuda", cmdargs=["-sf", "gpu", "-pk", f"gpu {ngpu}"])
+    # lmp = lammps("gpu-cuda", cmdargs=["-sf", "gpu", "-pk", f"gpu {ngpu}"])
+    lmp = lammps(comm=comm)
+
 
     lmp.command('# Lammps input file')
     lmp.command('units metal')
@@ -1066,8 +1068,3 @@ if __name__ == "__main__":
 
     if mode == 'MPI':
         MPI.Finalize()
-
-
-
-
-
