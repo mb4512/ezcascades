@@ -1081,6 +1081,19 @@ WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING''' % tem
             #########################
             # ATOMIC DESCRIPTOR END #
             ######################### 
+            
+            # write restart file always - this is in data format for also reading velocities
+            tempfile = "%s/%s/%s.temp.restart" % (scrdir, job_name, job_name)
+            rfile = "%s/%s/%s.restart" % (scrdir, job_name, job_name)
+
+            announce("Writing temp restart file: %s" % tempfile)
+            lmp.command('write_restart %s' % tempfile) 
+
+            if me == 0:
+                os.replace(tempfile, rfile)
+            comm.barrier()
+
+            announce("Replace temp restart file with actual one")
 
             # print thermo quantities in log file
             lmp.command("variable vpe equal pe")
@@ -1098,19 +1111,6 @@ WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING''' % tem
             # append to recoil energy log file
             pka_string = "print '%d " % (iteration+cloop) + "%10.6f "*len(cascade_pka) % tuple(cascade_pka) +  "' append %s/log/%s.pka" % (simdir, job_name)
             lmp.command(pka_string)
-
-            # write restart file always - this is in data format for also reading velocities
-            tempfile = "%s/%s/%s.temp.restart" % (scrdir, job_name, job_name)
-            rfile = "%s/%s/%s.restart" % (scrdir, job_name, job_name)
-
-            announce("Writing temp restart file: %s" % tempfile)
-            lmp.command('write_restart %s' % tempfile) 
-
-            if me == 0:
-                os.replace(tempfile, rfile)
-            comm.barrier()
-
-            announce("Replace temp restart file with actual one")
 
             # write dump file every 'export_nth' steps
             if ((iteration + cloop) % export_nth) == 0:
