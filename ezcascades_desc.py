@@ -657,11 +657,6 @@ WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING''' % tem
             voxeldescriptors.are_all_atoms_accounted () # make variables current, check for internal consistency 
             voxeldescriptors.set_atoms_to_averaged ()   # replace momentary atomic coordinates with time-averaged coordinates
 
-            dfile = "%s/%s/%s.test.restart" % (scrdir, job_name, job_name)
-            announce("Writing restart file: %s" % dfile)
-
-            lmp.command(f'write_restart {dfile}')
-
             if all_input["export_averaged_trajectories"]:
                 lmp.command(f"write_dump all custom {scrdir}/{job_name}/{job_name}.ave.{iteration}.dump id type x y z")
 
