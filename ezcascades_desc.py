@@ -1100,9 +1100,17 @@ WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING''' % tem
             lmp.command(pka_string)
 
             # write restart file always - this is in data format for also reading velocities
-            dfile = "%s/%s/%s.restart" % (scrdir, job_name, job_name)
-            announce("Writing restart file: %s" % dfile)
-            lmp.command('write_restart %s' % dfile) 
+            tempfile = "%s/%s/%s.temp.restart" % (scrdir, job_name, job_name)
+            rfile = "%s/%s/%s.restart" % (scrdir, job_name, job_name)
+
+            announce("Writing temp restart file: %s" % tempfile)
+            lmp.command('write_restart %s' % tempfile) 
+
+            if me == 0:
+                os.replace(tempfile, rfile)
+            comm.barrier()
+
+            announce("Replace temp restart file with actual one")
 
             # write dump file every 'export_nth' steps
             if ((iteration + cloop) % export_nth) == 0:
