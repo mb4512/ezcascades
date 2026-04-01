@@ -1,0 +1,65 @@
+{
+    "job_name": "fe_100_node_4_tasks_64",
+    "potential_path": "/pitagora/home/userexternal/mboleini/Simulations/EAMPotentials/",
+    "scratch_dir": "/pitagora_work/FUPB1_TADFRM/",
+    "sim_dir": "/pitagora/home/userexternal/mboleini/git/ezcascades/",
+    "potential": "M07_eam.fs",
+
+    "composition": {"1":  1.0},
+    "masses": {"1": 55.845},
+    "znums": {"1": 26},
+
+    "write_data": 1,
+    "simulation_clear": 1,
+    "export_nth": 5,
+
+    "max_steps": 50000,
+    "etol": "1e-12",
+    "boxstress": {"x": 0.0, "y": 0.0, "z": 0.0},
+
+    "PKAfile": "./pkafiles/10000.0eV.pka",
+    "PKAmin": 20.0,
+    "PKAmax": 20000.0,
+    "edavg": 40.0,
+
+    "maxdpa": 0.0008,
+    "incrementdpa": 0.0002,
+
+    "temperature": 295.0,
+    "thermalisation_time" : 50.0,
+    "melting_temperature": 1800.0,
+
+    "langevin_damping_time": 0.84188,
+    "barostat_damping_time": 2.0,
+
+    "stoppingfile": "./stoppingfiles/Fe-Fe.dat",
+    "electronic_stopping_threshold": 10.0,
+
+    "maxtemperature": 10000.0,
+    "minruntime": 10.0,
+
+    "runCG": 0,
+
+    "nx": 100,
+    "ny": 100,
+    "nz": 100,
+
+    "ix": [
+        1,
+        0,
+        0
+    ],
+    "iy": [
+        0,
+        1,
+        0
+    ],
+    "iz": [
+        0,
+        0,
+        1
+    ],
+
+    "initial": 0,
+    "initialtype": 0
+}

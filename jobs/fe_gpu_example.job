@@ -1,0 +1,56 @@
+#!/bin/bash
+#! Name of the job:
+#SBATCH -J fe_gpu_example
+#SBATCH -A fupb1_tadfrm
+#SBATCH -p boost_fua_prod 
+#SBATCH --nodes=1                             # Number of nodes to use
+#SBATCH --ntasks-per-node=16                  # Number of MPI tasks per node (e.g., 1 per GPU)
+#SBATCH --cpus-per-task=1                     # Number of CPU cores per task (adjust as needed)
+#SBATCH --gres=gpu:4		              # Number of GPUs per node (adjust to match hardware)
+#SBATCH --time=24:00:00
+
+#SBATCH --error ../diag/%x.err
+#SBATCH --output ../diag/%x.out
+
+#! Number of nodes and tasks per node allocated by SLURM (do not change):
+numnodes=$SLURM_JOB_NUM_NODES
+numtasks=$SLURM_NTASKS
+numgpus=$SLURM_GPUS_ON_NODE
+mpi_tasks_per_node=$(echo "$SLURM_TASKS_PER_NODE" | sed -e  's/^\([0-9][0-9]*\).*$/\1/')
+
+module load py-mpi4py/3.1.5--openmpi--4.1.6--oneapi--2024.1.0
+module load cuda/12.6
+source ~/pycuda/bin/activate
+
+#! Full path to application executable: 
+application="python ezcascades_gpu.py"
+
+#! Run options for the application:
+options="json/fe_gpu_example.json -ngpu ${numgpus}"
+
+#! Work directory (i.e. where the job will run):
+workdir="/pitagora/home/userexternal/mboleini/git/ezcascades"
+
+# Optional: Set environment variables for performance tuning
+export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK # Set OpenMP threads per task
+export NCCL_DEBUG=INFO                      # Enable NCCL debugging (for multi-GPU communication)
+
+#! The following variables define a sensible pinning strategy for Intel MPI tasks -
+#! this should be suitable for both pure MPI and hybrid MPI/OpenMP jobs:
+export I_MPI_PIN_DOMAIN=omp:compact # Domains are $OMP_NUM_THREADS cores in size
+export I_MPI_PIN_ORDER=scatter # Adjacent domains have minimal sharing of caches/sockets
+
+#! Choose this for a MPI code (possibly using OpenMP) using OpenMPI:
+CMD="srun --mpi=pmix $application $options"
+
+###############################################################
+### You should not have to change anything below this line ####
+###############################################################
+
+cd $workdir
+
+echo -e "Changed directory to `pwd`.\n"
+echo -e "\nnumtasks=$numtasks, numnodes=$numnodes, numgpus=$numgpus, mpi_tasks_per_node=$mpi_tasks_per_node (OMP_NUM_THREADS=$OMP_NUM_THREADS)"
+echo -e "\nExecuting command:\n==================\n$CMD\n"
+
+eval $CMD 

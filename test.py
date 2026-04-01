@@ -34,7 +34,7 @@ def main():
     print ("From Python: I am rank ID %d out of %d ranks." % (me, nprocs))
     sys.stdout.flush()
 
-    lmp = lammps()
+    lmp = lammps("gpu-cuda")
     lmp.command("print 'From LAMMPS: Hello World. You should see this message only once.'")
     lmp.close()
 

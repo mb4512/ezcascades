@@ -1,0 +1,94 @@
+{
+    "job_name": "fe_desc",
+    "potential_path": "/pitagora/home/userexternal/mboleini/Simulations/EAMPotentials/",
+    "scratch_dir": "/pitagora_work/FUPB1_TADFRM/",
+    "sim_dir": "/pitagora/home/userexternal/mboleini/git/ezcascades/",
+    "potential": "M07_eam.fs",
+
+    "composition": {"1":  1.0},
+    "masses": {"1": 55.845},
+    "znums": {"1": 26},
+
+    "write_data": 1,
+    "simulation_clear": 1,
+    "export_nth": 5,
+
+    "timestep": 0.002,
+
+    "write_descriptors": 1,
+    "average_over_fs": 30.0,
+    "export_momentary_trajectories": 0,
+    "export_averaged_trajectories": 1,
+    "export_trajectories_nth": 1000,
+    "export_descriptors_nth": 1000,
+    "voxelgrid": [2,2,2],
+    "descriptor_computes": {
+        "D": "sna/atom 5.8 0.99363 8 0.5 1", 
+        "dD": "snad/atom 5.8 0.99363 8 0.5 1", 
+        "ddD": "snav/atom 5.8 0.99363 8 0.5 1"
+    },
+
+    "obserable_custom": {
+        "voxel_atoms": "default", 
+        "voxel_dims": "default"
+    },
+
+    "observable_computes": {
+        "energy": "pe/atom",
+        "stress": "stress/atom NULL"
+    },
+    "observable_format": {
+        "energy": "",
+        "stress": "[*]"
+    },
+
+    "max_steps": 50000,
+    "etol": "1e-12",
+    "boxstress": {"x": 0.0, "y": 0.0, "z": 0.0},
+
+    "PKAfile": "./pkafiles/100.0eV.pka",
+    "PKAmin": 20.0,
+    "PKAmax": 20000.0,
+    "edavg": 40.0,
+
+    "maxdpa": 0.002,
+    "incrementdpa": 0.0002,
+
+    "temperature": 295.0,
+    "thermalisation_time" : 2.0,
+    "melting_temperature": 1800.0,
+
+    "langevin_damping_time": 0.84188,
+    "barostat_damping_time": 2.0,
+
+    "stoppingfile": "./stoppingfiles/Fe-Fe.dat",
+    "electronic_stopping_threshold": 10.0,
+
+    "maxtemperature": 10000.0,
+    "minruntime": 10.0,
+
+    "runCG": 0,
+
+    "nx": 32,
+    "ny": 32,
+    "nz": 32,
+
+    "ix": [
+        1,
+        0,
+        0
+    ],
+    "iy": [
+        0,
+        1,
+        0
+    ],
+    "iz": [
+        0,
+        0,
+        1
+    ],
+
+    "initial": 0,
+    "initialtype": 0
+}
